@@ -19,6 +19,13 @@ class ArticleConverter:
 def isoformat(s):
    return s if type(s)==str else s.isoformat()
 
+def updateNeeded(source,target,force=False):
+   updatedNeeded = force or not(os.path.exists(target))
+   if not updatedNeeded:
+      btime = os.path.getmtime(source)
+      updatedNeeded = btime > os.path.getmtime(target)
+   return updatedNeeded
+
 
 def main():
    argparser = argparse.ArgumentParser(description='Article HTML and Turtle Generator')
@@ -28,7 +35,10 @@ def main():
    argparser.add_argument('-w',nargs='?',help='The web uri',dest='weburi',default='http://www.milowski.com/journal/entry/')
    argparser.add_argument('-e',nargs='?',help='The entry uri directory',dest='entryuri',default='http://alexmilowski.github.io/milowski-journal/')
    argparser.add_argument('dir',nargs=1,help='The directory to process.')
-   argparser.add_argument('--no-turtle',dest='turtle',action='store_false',default=True,help='Do not generate turtle')
+   argparser.add_argument('--turtle',action='store_true',default=False,help='Generate turtle output')
+   argparser.add_argument('--cypher',action='store_true',default=False,help='Generate cypher output')
+   argparser.add_argument('--html',action='store_true',default=False,help='Generate html output')
+   argparser.add_argument('--merge',action='store_true',default=False,help='Use Cypher merge instead of create.')
    args = argparser.parse_args()
    inDir = args.dir[0]
    outDir = args.outdir if (args.outdir!=None) else inDir
@@ -44,6 +54,8 @@ def main():
       sourceDir = inDir + '/' + dir
       targetDir = outDir + '/' + dir
 
+      print(sourceDir+':')
+
       if (not(os.path.exists(targetDir))):
          os.makedirs(targetDir)
 
@@ -53,30 +65,32 @@ def main():
 
       for file in files:
 
-         targetFile = sourceDir + '/' + file
+         sourceFile = sourceDir + '/' + file
          base = file.rsplit('.',extension_count)[0]
-         htmlFile = targetDir + '/' + base + ".html"
-         turtleFile = targetDir + '/' + base + ".ttl"
 
-         updatedNeeded = args.force or not(os.path.exists(htmlFile)) or not(os.path.exists(turtleFile))
-         if (not(updatedNeeded)):
-            btime = os.path.getmtime(targetFile)
-            updatedNeeded = btime > os.path.getmtime(htmlFile) or btime > os.path.getmtime(turtleFile)
-
-         if (not(updatedNeeded)):
-            continue
-
-         print(file + " → " + htmlFile + ", " + turtleFile)
-
-         with open(targetFile) as file, open(htmlFile,'w') as html:
-            article = Article(file,baseuri=targetFile)
+         with open(sourceFile) as source:
+            article = Article(source,baseuri=sourceFile)
             resource = converter.weburi + isoformat(article.metadata['published'])
+            entry = converter.entryuri[-1] + base + '.html'
 
-            article.toHTML(html,generateTitle=True,resource=resource)
+            if args.html:
+               htmlFile = targetDir + '/' + base + ".html"
+               if updateNeeded(sourceFile,htmlFile,force=args.force):
+                  print(file + " → " + htmlFile)
+                  with open(htmlFile,'w') as html:
+                     article.toHTML(html,generateTitle=True,resource=resource)
             if args.turtle:
-               with open(turtleFile,'w') as turtle:
-                  entry = converter.entryuri[-1] + base + '.html'
-                  article.toTurtle(turtle,resource=resource,source=entry)
+               turtleFile = targetDir + '/' + base + ".ttl"
+               if updateNeeded(sourceFile,turtleFile,force=args.force):
+                  print(file + " → " + turtleFile)
+                  with open(turtleFile,'w') as turtle:
+                     article.toTurtle(turtle,resource=resource,source=entry)
+            if args.cypher:
+               cypherFile = targetDir + '/' + base + ".cypher"
+               if updateNeeded(sourceFile,cypherFile,force=args.force):
+                  print(file + " → " + cypherFile)
+                  with open(cypherFile,'w') as cypher:
+                     article.toCypher(cypher,resource=resource,source=entry,useMerge=args.merge)
 
 
       work = [f for f in os.listdir(sourceDir) if (not f.endswith('.md'))]
@@ -84,7 +98,7 @@ def main():
          sourceFile = sourceDir + '/' + file
          targetFile = targetDir + '/' + file
          if os.path.isfile(sourceFile):
-            copyNeeded = args.force or not(os.path.exists(targetFile)) or os.path.getmtime(sourceFile) > os.path.getmtime(targetFile)
+            copyNeeded = updateNeeded(sourceFile,targetFile,force=args.force)
 
             if copyNeeded:
                print(file + " → " + targetFile)
