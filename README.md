@@ -253,6 +253,8 @@ with open('1234.html') as output:
 
 The default implementation of `transformContent()` provides the ability to convert from Markdown to HTML. For the ability to transform from other media types to HTML, you must subclass `Article` and override this method.
 
+An example of the HTML output for the very first example is [available here](http://alexmilowski.github.io/milowski-journal/2017-07-12/sf-microservices-going-serverless.html).
+
 #### Converting to Turtle
 
 All the content except the `content` property can  be written in [Turtle](https://www.w3.org/TR/turtle/) via the `toTurtle()` method:
@@ -268,3 +270,5 @@ The resource URI can be specified the same way as in the `toHTML()` method. Addi
 with open('output.ttl') as output:
    article.toTurtle(output,source='http://www.example.com/content/entry/1234.html')
 ```
+
+An example of the Turtle output for the very first example is [available here](http://alexmilowski.github.io/milowski-journal/2017-07-12/sf-microservices-going-serverless.ttl). Take note of how the turtle points to the HTML source.
