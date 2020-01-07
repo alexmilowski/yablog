@@ -6,7 +6,7 @@ A simple YAML-based blog entry format.
 
 In 2016, I was motivated to make my blog and website easier. I wanted to use "Semantic Web" technology and drive the blog for my website and other content by the "linked data graph". That project, called [duckpond](https://github.com/alexmilowski/duckpond/) worked well.
 
-During the process, I wanted a simple authoring format where I could use github to store my blog entries and associated artifacts safely. Markdown seemed like a good choice except that I also needed a way to author the metadata. Originally, I settled on a simple header format of key/values. Ultimately, this has evolved into the use of YAML.
+During the process, I wanted a simple authoring format where I could use github to store my blog entries and associated artifacts safely. [Markdown](https://daringfireball.net/projects/markdown/) seemed like a good choice except that I also needed a way to author the metadata. Originally, I settled on a simple header format of key/values. Ultimately, this has evolved into the use of YAML.
 
 Turns out that Markdown nicely embeds into YAML. So does a lot of other formats. Who knew?
 
@@ -42,12 +42,20 @@ The following properties have specific meanings:
  * `published` (`schema:datePublished`) - the date the entry was published. If omitted, it defaults to updated.
  * `updated` (`schema:dateModified`) - the date the entry was published. If omitted, it defaults to the current date and time.
  * `keywords` (mapped to `schema:keywords`) - a list of keywords associated with the entry
+ * `description` (`schema:description`) - the description (summary) of the entry
  * `format` - (`schema:encodingFormat`) - the media type of the content. If omitted, it defaults to text/markdown.
- * `content` - (`schema:articleBody`) - the content of the blog entry.
+ * `content` - (`schema:articleBody`) - the content of the blog entry (required)
  * `contentLocation` - (`schema:encoding/schema:contentUrl`) - the location of the content of the blog entry
  * `artifacts` - (a list of `schema:associatedMedia` or `schema:Collection`) - a set of local artifacts (e.g., images) associated with the entry
  * `genre` - (`schema:genre`) - a genre of the entry (e.g., summary, primary, etc.)
  * `summaryOf` - (`schema:isBasedOn`) - a url of a article/entry elsewhere of which this entry is a summary
+
+The minimal entry is a single `content` property:
+
+```YAML
+content: |
+   They left me all alone.
+```
 
 Because YAML has some flexibility, properties like `author` can have a singular value:
 
@@ -121,6 +129,28 @@ Note that the use of `genre` is subjective to the processing application as they
 
 ### Other properties
 
-## Parsing with Python
+## Parsing Entries
 
-This repository contains a python package for parsing the entries and transforming them into various formats: HTML, Turtle, JSON-LD.
+Firstly, the top-level syntax is [YAML](https://yaml.org). As such, you can use your favorite language and YAML package to read the metadata and content. For example, in Python you can use [PyYAML](https://pyyaml.org) as follows:
+
+```Python
+import yaml
+
+with open('myentry.yaml') as file:
+   metadata = yaml.load(file,Loader=yaml.Loader)
+
+print(metadata['content'])
+```
+
+###  Processing Model
+
+By default, there are some assumptions:
+
+ * if there is no `format` property, the content is assumed to be Markdown
+ * if there is no `published` property, the `updated` property is used
+ * if there is no `updated` property, the current date and time is used.
+ * A `title` property may be generated from the content (e.g., the first headline)
+
+### Python Library
+
+This repository contains a python package for parsing the entries and transforming them into various formats: HTML, Turtle, JSON-LD. It implements the default processing model described above.
