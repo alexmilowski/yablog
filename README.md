@@ -48,7 +48,7 @@ The following properties have specific meanings:
  * `format` - (`schema:encodingFormat`) - the media type of the content.
  * `content` - (`schema:articleBody`) - the content of the blog entry (required)
  * `contentLocation` - (`schema:encoding/schema:contentUrl`) - the location of the content of the blog entry
- * `artifacts` - (a list of `schema:associatedMedia` or `schema:Collection`) - a set of local artifacts (e.g., images) associated with the entry
+ * `artifacts` - (a list of `schema:hasPart` or `schema:Collection`) - a set of local artifacts (e.g., images) associated with the entry
  * `genre` - (`schema:genre`) - a genre of the entry (e.g., summary, primary, etc.)
  * `summaryOf` - (`schema:isBasedOn`) - a url of a article/entry elsewhere of which this entry is a summary
 
