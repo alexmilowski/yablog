@@ -207,7 +207,7 @@ By default, there are some assumptions:
 
 This repository contains a python package for parsing the entries and transforming them into various formats: HTML, Turtle, JSON-LD. It implements the default processing model described above.
 
-## Loading an Article
+#### Loading an Article
 
 Loading a simple entry is easy:
 
@@ -228,7 +228,7 @@ Articles have the following properties:
 
 If the metadata data is changed, the `update()` method can be used to computed derived property values.
 
-## Converting to HTML
+#### Converting to HTML
 
 An article can be converted to HTML via the `toHTML()` method:
 
@@ -253,7 +253,7 @@ with open('1234.html') as output:
 
 The default implementation of `transformContent()` provides the ability to convert from Markdown to HTML. For the ability to transform from other media types to HTML, you must subclass `Article` and override this method.
 
-## Converting to Turtle
+#### Converting to Turtle
 
 All the content except the `content` property can  be written in [Turtle](https://www.w3.org/TR/turtle/) via the `toTurtle()` method:
 
