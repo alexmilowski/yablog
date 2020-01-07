@@ -206,3 +206,65 @@ By default, there are some assumptions:
 ### Python Library
 
 This repository contains a python package for parsing the entries and transforming them into various formats: HTML, Turtle, JSON-LD. It implements the default processing model described above.
+
+## Loading an Article
+
+Loading a simple entry is easy:
+
+```Python
+from yablog import Article
+
+source = 'myentry.yaml'
+with open(source) as file:
+   entry = Article(source,baseuri=source)
+
+print(entry.metadata['content'])
+```
+
+Articles have the following properties:
+
+ * `metadata` - a mutable dictionary of metadata values
+ * `baseuri` - the base URI of the article source
+
+If the metadata data is changed, the `update()` method can be used to computed derived property values.
+
+## Converting to HTML
+
+An article can be converted to HTML via the `toHTML()` method:
+
+```Python
+with open('output.html') as output:
+   article.toHTML(output)
+```
+
+If your entries do not contain titles, you can generate the title from the `title` property:
+
+```Python
+with open('output.html') as output:
+   article.toHTML(output,generateTitle=True)
+```
+
+Often, the source of the entry is not in the same location as the output resource. If you embed a `id` property, the resource location will default to that value. Otherwise, you can specify the resource location as well:
+
+```Python
+with open('1234.html') as output:
+   article.toHTML(output,generateTitle=True,resource='http://www.example.com/entry/1234')
+```
+
+The default implementation of `transformContent()` provides the ability to convert from Markdown to HTML. For the ability to transform from other media types to HTML, you must subclass `Article` and override this method.
+
+## Converting to Turtle
+
+All the content except the `content` property can  be written in [Turtle](https://www.w3.org/TR/turtle/) via the `toTurtle()` method:
+
+```Python
+with open('output.ttl') as output:
+   article.toTurtle(output)
+```
+
+The resource URI can be specified the same way as in the `toHTML()` method. Additionally, the HTML encoding can be generated via an `schema:associatedMedia` property via the `source` keyword:
+
+```Python
+with open('output.ttl') as output:
+   article.toTurtle(output,source='http://www.example.com/content/entry/1234.html')
+```
