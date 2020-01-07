@@ -4,15 +4,17 @@ A simple YAML-based blog entry format.
 
 ## Motivation
 
-In 2016, I was motivated to make my blog and website easier. I wanted to use "Semantic Web" technology and drive the blog for my website and other content by the "linked data graph". That project, called [duckpond](https://github.com/alexmilowski/duckpond/) worked well.
+In 2016, I was motivated to make my blog and website easier. I wanted to use "Semantic Web" technology and drive the blog for my website and other content by the "linked data graph". That project is called [duckpond](https://github.com/alexmilowski/duckpond/) and has served me well.
 
-During the process, I wanted a simple authoring format where I could use github to store my blog entries and associated artifacts safely. [Markdown](https://daringfireball.net/projects/markdown/) seemed like a good choice except that I also needed a way to author the metadata. Originally, I settled on a simple header format of key/values. Ultimately, this has evolved into the use of YAML.
+During the process, I wanted a simple authoring format where I could use github to store my blog entries and associated artifacts safely. [Markdown](https://daringfireball.net/projects/markdown/) seemed like a good choice except that I also needed a way to author the metadata. Originally, I settled on a simple header format of key/values. Ultimately, that format has evolved into the use of YAML.
 
-Turns out that Markdown nicely embeds into YAML. So does a lot of other formats. Who knew?
+Turns out that Markdown nicely embeds into YAML and so do a lot of other formats. Who knew?
 
 ## An Example
 
-Every entry parses as a YAML file. The essential metadata map nicely to a [schema.org BlogPosting](http://schema.org/BlogPosting) type although the properties are not named extactly the same.  For example, the following is an entry off my website.
+Every entry is a set of metadata and content encoded in YAML. The essential metadata map nicely to a [schema.org BlogPosting](http://schema.org/BlogPosting) type although the properties are not named the same. The motivation for the difference in naming is essentially clarity - which is a certainly subjective.
+
+For example, the following is an entry off my website:
 
 ```YAML
 title: SF Microservices Meetup - Going Serverless with Flask
@@ -37,13 +39,13 @@ content: |
 
 The following properties have specific meanings:
 
- * `title` (`schema:headline`)- the title of the entry. If there is not title, the converter will attempt to generate one from the content.
+ * `title` (`schema:headline`)- the title of the entry.
  * `author` (`schema:author/schema:name` or list of) - the name of the author or a list of author names.
- * `published` (`schema:datePublished`) - the date the entry was published. If omitted, it defaults to updated.
- * `updated` (`schema:dateModified`) - the date the entry was published. If omitted, it defaults to the current date and time.
+ * `published` (`schema:datePublished`) - the date the entry was published (ISO 8601)
+ * `updated` (`schema:dateModified`) - the date the entry was published (ISO 8601)
  * `keywords` (mapped to `schema:keywords`) - a list of keywords associated with the entry
  * `description` (`schema:description`) - the description (summary) of the entry
- * `format` - (`schema:encodingFormat`) - the media type of the content. If omitted, it defaults to text/markdown.
+ * `format` - (`schema:encodingFormat`) - the media type of the content.
  * `content` - (`schema:articleBody`) - the content of the blog entry (required)
  * `contentLocation` - (`schema:encoding/schema:contentUrl`) - the location of the content of the blog entry
  * `artifacts` - (a list of `schema:associatedMedia` or `schema:Collection`) - a set of local artifacts (e.g., images) associated with the entry
@@ -54,39 +56,72 @@ The minimal entry is a single `content` property:
 
 ```YAML
 content: |
-   They left me all alone.
+   They've left me all alone. Where did everybody go?
 ```
 
 Because YAML has some flexibility, properties like `author` can have a singular value:
 
 ```YAML
-author: Alex Miłowski
+author: Son
+content: |
+   They've left me all alone. Where did everybody go?
 ```
 
 or be a list of names:
 
 ```YAML
 author:
-   - Alex Miłowski
-   - Elvis
+- Son
+- Foghorn Leghorn
+content: |
+   They've left me all alone. Where did everybody go?
 ```
 
 Similarly, keywords are simply a list of keywords:
 
 ```YAML
+author:
+- Son
+- Foghorn Leghorn
 keywords:
-- python
-- Flask
-- Serverless
+- Merrie Melodies
+- Mel Blanc
+- Looney Tunes
+- Ostrich
+content: |
+   They've left me all alone. Where did everybody go?
 ```
 
-while schema.org expects a comma-separated value (e.g., `python, Flask, Serverless`).
+while schema.org expects a comma-separated value (e.g., `Merrie Melodies, Mel Blanc, Looney Tunes, Ostrich`).
+
+Finally, properties can be in any order even though it is probably most convenient to have the `content` property last:
+
+```YAML
+author:
+- Son
+- Foghorn Leghorn
+content: |
+   They've left me all alone. Where did everybody go?
+title: Mother was a rooster
+```
+
+is the same as:
+
+```YAML
+title: Mother was a rooster
+author:
+- Son
+- Foghorn Leghorn
+content: |
+   They've left me all alone. Where did everybody go?
+```
+
 
 ### Associated artifacts
 
-When producing content for blog entries, there are often associated media and collections that are essential components to the content. These are listed via the `artifacts` property.  Each entry in the list should have a `kind` that indicates the media type of the artifact. The special value of `directory` indicates the location is a hierarchy of content (a directory).
+When producing content for blog entries, there are often associated media and collections that are essential components to the content. These are listed via the `artifacts` property.  Each entry in the list should have a `kind` that indicates the media type of the artifact or a keyword value. The keyword `directory` indicates the location is a hierarchy of content (a directory).
 
-The `location` property on the artifact specifices a relative URI of the content of the artifact. This may likely be a local file or directory relative to the YAML file's base URI.
+The `location` property on the artifact specifies a relative URI of the content of the artifact. This may likely be a local or remote resource that is relative to the YAML file's base URI (if it has one).
 
 ### Encoding content
 
@@ -94,7 +129,7 @@ The entry content can be simply be embedded in the YAML by the `content` propert
 
 ```YAML
 content: |
-   I am some markdown `text`!
+   They've left me all alone. Where did everybody go?
 ```
 
 other formats will also easily embed:
@@ -103,7 +138,7 @@ other formats will also easily embed:
 format: text/html
 content: |
    <section>
-   <p>Here is some HTML!</p>
+   <p>They've left me all alone. Where did everybody go?</p>
    </section>
 ```
 
@@ -114,20 +149,36 @@ If the content of the entry is not embedded in the YAML, `contentLocation` can s
 The `genre` can be used to control the classification of the content. For example, if any entry was a summary of a article posted on Medium:
 
 ```YAML
-title: My Dog is a Sea Wolf
+title: Mother was a rooster
 author: Alex Miłowski
-published: 2020-01-06T10:35:00-08:00
 keywords:
-- dogs
+- Merrie Melodies
+- Mel Blanc
+- Looney Tunes
+- Ostrich
+published: 2020-01-06T10:35:00-08:00
 genre: summary
-summaryOf: http://www.medium.com/...
+summaryOf: https://en.wikipedia.org/wiki/Mother_Was_a_Rooster
 content: |
-   My dog is secretly a Sea Wolf. Really. It's true!
+   They've left me all alone. Where did everybody go?
 ```
 
 Note that the use of `genre` is subjective to the processing application as they translate to generic properties in the schema.org parlance.
 
 ### Other properties
+
+Other properties can be embedded, including full schema.org properties, as long as they are legal YAML. Syntactically, a full property name can be embed by quoting the name:
+
+```YAML
+"http://schema.org/expires": 2019-01-07T10:11:00-07:00
+```
+
+or abbreviated CURIE names:
+```YAML
+"schema:expires": 2019-01-07T10:11:00-07:00
+```
+
+The processing of such properties depends on the receiving application's ability to handle JSON-LD or schema.org property syntax and interpretation.
 
 ## Parsing Entries
 
@@ -150,6 +201,7 @@ By default, there are some assumptions:
  * if there is no `published` property, the `updated` property is used
  * if there is no `updated` property, the current date and time is used.
  * A `title` property may be generated from the content (e.g., the first headline)
+ * A `description` property may be generated from the content (e.g., the first paragraph)
 
 ### Python Library
 
