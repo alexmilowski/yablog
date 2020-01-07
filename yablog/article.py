@@ -7,6 +7,9 @@ TEXT_MARKDOWN = 'text/markdown'
 TEXT_HTML = 'text/html'
 TEXT_XML = 'text/xml'
 
+def cypher_quote(value):
+   return value.replace("'","\'")
+
 class Article:
    def __init__(self,source,baseuri=None):
       self.baseuri = baseuri
@@ -59,6 +62,11 @@ class Article:
 
       if 'genre' not in properties:
          properties['genre'] = 'blog'
+
+      for name in ['published','updated']:
+         dt = properties.get(name)
+         if dt is not None and type(dt)!=str:
+            properties[name] = dt.isoformat()
       return properties
 
    def toHTML(self,html,generateTitle=False,resource=None):
@@ -147,3 +155,72 @@ class Article:
          triples.write(""";
    schema:associatedMedia [ a schema:MediaObject; schema:contentUrl <{url}>]""".format(url=source))
       triples.write(' .\n')
+
+   def toCypher(self,cypher,resource='',source=None,useMerge=True):
+      properties = self.generateProperties(resource=resource)
+
+      for name in properties.keys():
+         value = properties[name]
+         if type(value)==str:
+            properties[name] = cypher_quote(value)
+
+      if useMerge:
+         self.toCypherMerge(cypher,properties,source=source)
+      else:
+         self.toCypherCreate(cypher,properties,source=source)
+
+   def toCypherMerge(self,cypher,properties,source=None):
+
+      cypher.write("""
+MERGE (n:Article {{id:'{id}'}})
+SET n += {{
+  genre: '{genre}',
+  headline: '{title}',
+  description: '{description}'
+  datePublished: '{published}',
+  dateModified: '{updated}',
+  url: '{resource}'
+}})""".format(**properties))
+
+      for index,keyword in enumerate(properties.get('keywords',[])):
+         cypher.write("""
+MERGE (k{index}:Keyword {{text:'{keyword}'}})
+MERGE (n)-[r:LabeledWith]->(k{index})""".format(index=index,keyword=keyword))
+
+      authors = properties.get('author',[])
+      for index,author in enumerate(authors if type(authors)==list else [authors]):
+         cypher.write("""
+MERGE (a{index}:Author {{name:'{author}'}})
+MERGE (n)-[r:AuthoredBy]->(a{index})""".format(index=index,author=author))
+      if source is not None:
+         cypher.write("""
+MERGE (r:Resource {{ url: '{source}'}})
+MERGE (n)-[r:AssociatedMedia]->(r)""".format(source=source))
+
+   def toCypherCreate(self,cypher,properties,source=None):
+
+      cypher.write("""
+CREATE (n:Article {{id:'{id}'}})
+SET n += {{
+  genre: '{genre}',
+  headline: '{title}',
+  description: '{description}'
+  datePublished: '{published}',
+  dateModified: '{updated}',
+  url: '{resource}'
+}})""".format(**properties))
+
+      for index,keyword in enumerate(properties.get('keywords',[])):
+         cypher.write("""
+MERGE (k{index}:Keyword {{text:'{keyword}'}})
+CREATE (n)-[r:LabeledWith]->(k{index})""".format(index=index,keyword=keyword))
+
+      authors = properties.get('author',[])
+      for index,author in enumerate(authors if type(authors)==list else [authors]):
+         cypher.write("""
+MERGE (a{index}:Author {{name:'{author}'}})
+CREATE (n)-[r:AuthoredBy]->(a{index})""".format(index=index,author=author))
+      if source is not None:
+         cypher.write("""
+CREATE (r:Resource {{url: '{source}'}})
+CREATE (n)-[r:AssociatedMedia]->(r)""".format(source=source))
