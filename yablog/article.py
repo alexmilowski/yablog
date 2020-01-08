@@ -8,7 +8,7 @@ TEXT_HTML = 'text/html'
 TEXT_XML = 'text/xml'
 
 def cypher_quote(value):
-   return value.replace("'","\'")
+   return value.replace("'",r"\'")
 
 class Article:
    def __init__(self,source,baseuri=None):
