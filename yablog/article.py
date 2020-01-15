@@ -36,7 +36,7 @@ class Article:
       self.hasTitle = title is not None
 
       if 'description' not in self.metadata:
-         self.metadata['description'] = summary.replace('\n',' ')
+         self.metadata['description'] = commonmark.commonmark(summary)
 
       if 'updated' not in self.metadata:
          self.metadata['updated'] = now()
