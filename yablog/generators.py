@@ -9,9 +9,9 @@ class Generator:
    def __init__(self):
       pass
 
-   def toString(self,article,**kwargs):
+   def generate_string(self,article,**kwargs):
       output = StringIO()
-      self.generate(article,output,resource=resource,**kwargs)
+      self.generate(article,output,**kwargs)
       return output.getvalue()
 
    def generate(self,article,targeOutput,**kwargs):
@@ -238,7 +238,7 @@ def generate_string(article,type,**kwargs):
    g = generator_for(type)
    if g is None:
       raise ValueError('Type {} is not supported.'.format(type))
-   return g.toString(article,output,**kwargs)
+   return g.generate_string(article,**kwargs)
 
 register_generator(HTMLGenerator(),'text/html')
 register_generator(TurtleGenerator(),'text/turtle')
