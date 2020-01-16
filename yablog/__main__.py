@@ -3,6 +3,7 @@ import os
 import shutil
 
 from yablog import Article
+from yablog import generate
 
 
 class ArticleConverter:
@@ -77,20 +78,20 @@ def main():
                htmlFile = targetDir + '/' + base + ".html"
                if updateNeeded(sourceFile,htmlFile,force=args.force):
                   print(file + " → " + htmlFile)
-                  with open(htmlFile,'w') as html:
-                     article.toHTML(html,generateTitle=True,resource=resource)
+                  with open(htmlFile,'w') as output:
+                     generate(article,'text/html',output,generateTitle=True,resource=resource)
             if args.turtle:
                turtleFile = targetDir + '/' + base + ".ttl"
                if updateNeeded(sourceFile,turtleFile,force=args.force):
                   print(file + " → " + turtleFile)
-                  with open(turtleFile,'w') as turtle:
-                     article.toTurtle(turtle,resource=resource,source=entry)
+                  with open(turtleFile,'w') as output:
+                     generate(article,'text/html',output,resource=resource,source=entry)
             if args.cypher:
                cypherFile = targetDir + '/' + base + ".cypher"
                if updateNeeded(sourceFile,cypherFile,force=args.force):
                   print(file + " → " + cypherFile)
-                  with open(cypherFile,'w') as cypher:
-                     article.toCypher(cypher,resource=resource,source=entry,useMerge=args.merge)
+                  with open(cypherFile,'w') as output:
+                     generate(article,'text/x.cypher',output,resource=resource,source=entry,useMerge=args.merge)
 
 
       work = [f for f in os.listdir(sourceDir) if (not f.endswith('.md'))]

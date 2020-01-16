@@ -228,47 +228,52 @@ Articles have the following properties:
 
 If the metadata data is changed, the `update()` method can be used to computed derived property values.
 
-#### Converting to HTML
+#### Converting to various outputs
 
-An article can be converted to HTML via the `toHTML()` method:
+An article can be converted to various outputs using the `generate` or
+`generate_string` functions. They currently support the following formats:
 
-```Python
+ * `text/html` - HTML5
+ * `text/turtle` - Triples in Turtle format
+ * `text/x.cypher` - cypher statements for property graphs
+
+For example, an article can be converted to HTML via:
+
+```python
+from yablog import generate
+
 with open('output.html') as output:
-   article.toHTML(output)
+   generate(article,'text/html',output)
 ```
 
-If your entries do not contain titles, you can generate the title from the `title` property:
+Similarly, a string can be returned instead:
+
+```python
+from yablog import generate_string
+
+content = generate_string(article,'text/html')
+```
+
+All the types supported are implemented via a `Generator` class. An instance
+for a media type can be registered via `register_generator` and removed via
+`deregister_generator`.
+
+Both the `generate` and `generate_string` functions support arbitrary keywords
+that can be passed to control the output.
+
+The current keywords supported are:
+
+ * `generate_title=bool`, defaults to False - generate a title in the content from `headline` (HTML)
+ * `embed_content=bool`, defaults to False - embed the `content` property as the `articleBody` (Turtle/Cypher)
+ * `resource=str` - the resource uri of the article (All)
+ * `source=str` - the uri of the content of the article (Turtle/Cypher)
+ * `use_merge=bool`, defaults to True - indicates whether merge should be preferred over create (Cypher)
+
+For example, the resource and source can be specified for cypher:
 
 ```Python
-with open('output.html') as output:
-   article.toHTML(output,generateTitle=True)
+with open('output.cypher') as output:
+   generate(article,'text/x.cypher',output,resource='http://www.example.com/entry/1234',source='http://cdn.example.com/entry/1234.html')
 ```
-
-Often, the source of the entry is not in the same location as the output resource. If you embed a `id` property, the resource location will default to that value. Otherwise, you can specify the resource location as well:
-
-```Python
-with open('1234.html') as output:
-   article.toHTML(output,generateTitle=True,resource='http://www.example.com/entry/1234')
-```
-
-The default implementation of `transformContent()` provides the ability to convert from Markdown to HTML. For the ability to transform from other media types to HTML, you must subclass `Article` and override this method.
 
 An example of the HTML output for the very first example is [available here](http://alexmilowski.github.io/milowski-journal/2017-07-12/sf-microservices-going-serverless.html).
-
-#### Converting to Turtle
-
-All the content except the `content` property can  be written in [Turtle](https://www.w3.org/TR/turtle/) via the `toTurtle()` method:
-
-```Python
-with open('output.ttl') as output:
-   article.toTurtle(output)
-```
-
-The resource URI can be specified the same way as in the `toHTML()` method. Additionally, the HTML encoding can be generated via an `schema:associatedMedia` property via the `source` keyword:
-
-```Python
-with open('output.ttl') as output:
-   article.toTurtle(output,source='http://www.example.com/content/entry/1234.html')
-```
-
-An example of the Turtle output for the very first example is [available here](http://alexmilowski.github.io/milowski-journal/2017-07-12/sf-microservices-going-serverless.ttl). Take note of how the turtle points to the HTML source.
