@@ -17,6 +17,9 @@ class Generator:
    def generate(self,article,targeOutput,**kwargs):
       pass
 
+def quote_escape(value):
+   return value.replace('"',r'\"')
+
 class HTMLGenerator(Generator):
    def __init__(self,generate_title=False):
       self.generate_title = generate_title
@@ -33,11 +36,13 @@ class HTMLGenerator(Generator):
             if name=='resource':
                properties[name] = escape(value,quote=True)
             else:
-               properties[name] = escape(value)
-      properties['keywords'] = ','.join(['"' + m + '"' for m in properties.get('keywords',[])])
+               properties[name] = escape(value,quote=False)
+      properties['keywords'] = ','.join(properties.get('keywords',[]))
+      for name in ['title','description','keywords']:
+         properties[name] = quote_escape(properties[name])
 
       html.write("""<article xmlns="http://www.w3.org/1999/xhtml" vocab="http://schema.org/" typeof="BlogPosting" resource="{resource}">
-<script type="application/json+ld">
+<script type="application/ld+json">
 {{
 "@context" : "http://schema.org/",
 "@id" : "{id}",
@@ -46,7 +51,7 @@ class HTMLGenerator(Generator):
 "description" : "{description}",
 "datePublished" : "{published}",
 "dateModified" : "{updated}",
-"keywords" : [{keywords}]""".format(**properties))
+"keywords" : "{keywords}" """.format(**properties))
       if 'author' in properties:
          html.write(',\n"author" : [ ')
          authors = properties.get('author',[])
