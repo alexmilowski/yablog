@@ -32,6 +32,10 @@ class HTMLGenerator(Generator):
 
       for name in properties.keys():
          value = properties[name]
+         if name=='content':
+            continue
+         if name=='articleBody':
+            continue
          if type(value)==str:
             if name=='resource':
                properties[name] = escape(value,quote=True)
