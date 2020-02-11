@@ -1,5 +1,9 @@
 import yaml
 
+class Publisher:
+   def __init__(self,source,baseuri=None):
+      self.baseuri = baseuri
+      self.metadata = yaml.load(source,Loader=yaml.Loader)
 
 class Article:
    TEXT_MARKDOWN = 'text/markdown'
@@ -7,9 +11,10 @@ class Article:
    TEXT_XML = 'text/xml'
    TEXT_TURTLE = 'text/turtle'
    TEXT_CYPHER = 'text/x.cypher'
-   def __init__(self,source,baseuri=None):
+   def __init__(self,source,baseuri=None,publisher=None):
       self.baseuri = baseuri
       self.metadata = yaml.load(source,Loader=yaml.Loader)
+      self.publisher = publisher
 
       self.update()
 
@@ -63,4 +68,7 @@ class Article:
          dt = properties.get(name)
          if dt is not None and type(dt)!=str:
             properties[name] = dt.isoformat()
+
+      if self.publisher is not None and 'publisher' not in properties:
+         properties['publisher'] = self.publisher.metadata.copy()
       return properties

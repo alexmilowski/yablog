@@ -46,6 +46,7 @@ class HTMLGenerator(Generator):
 {{
 "@context" : "http://schema.org/",
 "@id" : "{id}",
+"@type" : "BlogPosting",
 "genre" : "{genre}",
 "headline" : "{title}",
 "description" : "{description}",
@@ -60,6 +61,15 @@ class HTMLGenerator(Generator):
                html.write(', ')
             html.write('{{ "@type" : "Person", "name" : "{}" }}'.format(author))
          html.write(']')
+      if 'publisher' in properties:
+         publisher = properties['publisher']
+         html.write(',\n"publisher" : {')
+         sep = ' '
+         for name in publisher.keys():
+            value = publisher[name]
+            html.write(sep+'"{name}" : "{value}"'.format(name=name,value=value))
+            sep = ', '
+         html.write('}')
       html.write("""
 }
 </script>

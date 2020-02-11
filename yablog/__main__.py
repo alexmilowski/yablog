@@ -2,7 +2,7 @@ import argparse
 import os
 import shutil
 
-from yablog import Article
+from yablog import Article, Publisher
 from yablog import generate
 
 
@@ -35,6 +35,7 @@ def main():
    argparser.add_argument('-o',nargs='?',help='The output directory',dest='outdir')
    argparser.add_argument('-w',nargs='?',help='The web uri',dest='weburi',default='http://www.milowski.com/journal/entry/')
    argparser.add_argument('-e',nargs='?',help='The entry uri directory',dest='entryuri',default='http://alexmilowski.github.io/milowski-journal/')
+   argparser.add_argument('--publisher',nargs='?',help='The publisher')
    argparser.add_argument('dir',nargs=1,help='The directory to process.')
    argparser.add_argument('--turtle',action='store_true',default=False,help='Generate turtle output')
    argparser.add_argument('--cypher',action='store_true',default=False,help='Generate cypher output')
@@ -44,6 +45,11 @@ def main():
    inDir = args.dir[0]
    outDir = args.outdir if (args.outdir!=None) else inDir
    dirs = [d for d in os.listdir(inDir) if not(d[0]=='.') and os.path.isdir(inDir + '/' + d)]
+
+   publisher = None
+   if args.publisher is not None:
+      with open(args.publisher) as source:
+         publisher = Publisher(source)
 
    converter = ArticleConverter(args.weburi,args.entryuri)
 
@@ -70,7 +76,7 @@ def main():
          base = file.rsplit('.',extension_count)[0]
 
          with open(sourceFile) as source:
-            article = Article(source,baseuri=sourceFile)
+            article = Article(source,baseuri=sourceFile,publisher=publisher)
             resource = converter.weburi + isoformat(article.metadata['published'])
             entry = converter.entryuri[-1] + base + '.html'
 
