@@ -37,6 +37,7 @@ def main():
    argparser.add_argument('-e',nargs='?',help='The entry uri directory',dest='entryuri',default='http://alexmilowski.github.io/milowski-journal/')
    argparser.add_argument('--publisher',nargs='?',help='The publisher')
    argparser.add_argument('dir',nargs=1,help='The directory to process.')
+   argparser.add_argument('--single',action='store_true',default=False,help='Process a single directory')
    argparser.add_argument('--turtle',action='store_true',default=False,help='Generate turtle output')
    argparser.add_argument('--cypher',action='store_true',default=False,help='Generate cypher output')
    argparser.add_argument('--html',action='store_true',default=False,help='Generate html output')
@@ -44,7 +45,23 @@ def main():
    args = argparser.parse_args()
    inDir = args.dir[0]
    outDir = args.outdir if (args.outdir!=None) else inDir
-   dirs = [d for d in os.listdir(inDir) if not(d[0]=='.') and os.path.isdir(inDir + '/' + d)]
+   if outDir[-1]==os.sep:
+      outDir = outDir[0:-1]
+   if args.single:
+      if inDir[-1]==os.sep:
+         inDir = inDir[0:-1]
+      last = inDir.rfind(os.sep)
+      if last<0:
+         dirs = [inDir]
+         inDir = '.'
+         outDir = outDir + os.sep + inDir
+      else:
+         dirs = [inDir[last+1:]]
+         inDir = inDir[0:last]
+         if inDir=='':
+            inDir = '/'
+   else:
+      dirs = [d for d in os.listdir(inDir) if not(d[0]=='.') and os.path.isdir(inDir + '/' + d)]
 
    publisher = None
    if args.publisher is not None:
@@ -98,7 +115,6 @@ def main():
                   print(file + " → " + cypherFile)
                   with open(cypherFile,'w') as output:
                      generate(article,'text/x.cypher',output,resource=resource,source=entry,useMerge=args.merge)
-
 
       work = [f for f in os.listdir(sourceDir) if (not f.endswith('.md'))]
       for file in work:
