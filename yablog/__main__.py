@@ -45,6 +45,7 @@ def main():
    args = argparser.parse_args()
    inDir = args.dir[0]
    outDir = args.outdir if (args.outdir!=None) else inDir
+   same = inDir==outDir
    if outDir[-1]==os.sep:
       outDir = outDir[0:-1]
    if args.single:
@@ -54,12 +55,17 @@ def main():
       if last<0:
          dirs = [inDir]
          inDir = '.'
-         outDir = outDir + os.sep + inDir
+         if not same:
+            outDir = outDir + os.sep + inDir
+         else:
+            outDir = '.'
       else:
          dirs = [inDir[last+1:]]
          inDir = inDir[0:last]
          if inDir=='':
             inDir = '/'
+         if same:
+            outDir = inDir
    else:
       dirs = [d for d in os.listdir(inDir) if not(d[0]=='.') and os.path.isdir(inDir + '/' + d)]
 
@@ -116,6 +122,8 @@ def main():
                   with open(cypherFile,'w') as output:
                      generate(article,'text/x.cypher',output,resource=resource,source=entry,useMerge=args.merge)
 
+      if same:
+         continue
       work = [f for f in os.listdir(sourceDir) if (not f.endswith('.md'))]
       for file in work:
          sourceFile = sourceDir + '/' + file
