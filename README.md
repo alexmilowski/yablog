@@ -1,4 +1,4 @@
-# yablog
+# yamlblog
 
 A simple YAML-based blog entry format.
 
@@ -212,7 +212,7 @@ This repository contains a python package for parsing the entries and transformi
 Loading a simple entry is easy:
 
 ```Python
-from yablog import Article
+from yamlblog import Article
 
 source = 'myentry.yaml'
 with open(source) as file:
@@ -240,7 +240,7 @@ An article can be converted to various outputs using the `generate` or
 For example, an article can be converted to HTML via:
 
 ```python
-from yablog import generate
+from yamlblog import generate
 
 with open('output.html') as output:
    generate(article,'text/html',output)
@@ -249,7 +249,7 @@ with open('output.html') as output:
 Similarly, a string can be returned instead:
 
 ```python
-from yablog import generate_string
+from yamlblog import generate_string
 
 content = generate_string(article,'text/html')
 ```

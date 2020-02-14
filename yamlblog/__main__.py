@@ -2,8 +2,8 @@ import argparse
 import os
 import shutil
 
-from yablog import Article, Publisher
-from yablog import generate
+from yamlblog import Article, Publisher
+from yamlblog import generate
 
 
 class ArticleConverter:

@@ -2,7 +2,7 @@ from io import StringIO
 import commonmark
 from html import escape
 
-from yablog import Article
+from yamlblog import Article
 
 
 class Generator:
