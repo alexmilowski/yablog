@@ -21,11 +21,13 @@ def quote_escape(value):
    return value.replace('"',r'\"')
 
 class HTMLGenerator(Generator):
-   def __init__(self,generate_title=False):
+   def __init__(self,generate_title=False,generate_info=False):
       self.generate_title = generate_title
+      self.generate_info = generate_info
 
    def generate(self,article,html,**kwargs):
       generate_title = kwargs.get('generate_title',self.generate_title)
+      generate_info = kwargs.get('generate_info',self.generate_info)
       resource = kwargs.get('resource')
 
       properties = article.generate_properties(resource=resource)
@@ -42,8 +44,10 @@ class HTMLGenerator(Generator):
             else:
                properties[name] = escape(value,quote=False)
       properties['keywords'] = ','.join(properties.get('keywords',[]))
+
+      ld_properties = properties.copy()
       for name in ['title','description','keywords']:
-         properties[name] = quote_escape(properties[name])
+         ld_properties[name] = quote_escape(ld_properties[name])
 
       html.write("""<article xmlns="http://www.w3.org/1999/xhtml" vocab="http://schema.org/" typeof="BlogPosting" resource="{resource}">
 <script type="application/ld+json">
@@ -56,7 +60,7 @@ class HTMLGenerator(Generator):
 "description" : "{description}",
 "datePublished" : "{published}",
 "dateModified" : "{updated}",
-"keywords" : "{keywords}" """.format(**properties))
+"keywords" : "{keywords}" """.format(**ld_properties))
       if 'author' in properties:
          html.write(',\n"author" : [ ')
          authors = properties.get('author',[])
@@ -78,8 +82,35 @@ class HTMLGenerator(Generator):
 }
 </script>
 """)
-      if generate_title and not self.hasTitle:
-         html.write("<h1>{}</h1>".format(properties['title']))
+      if generate_title and not article.has_title:
+         html.write("<h1 property='headline'>{}</h1>\n".format(properties['title']))
+
+      if generate_info:
+         properties['publishedDisplay'] = ' '.join(properties['published'].split('T'))
+         html.write('<section class="info">\n')
+         html.write('''
+<div class="metadata">
+<p>
+<a href="{id}" title="link to this entry">🔗</a> Published on
+<span property="datePublished" content="{published}">{publishedDisplay}</span>
+<span property="dateModified" content="{updated}"></span>
+</p>
+<p property="keywords">{keywords}</p>
+<p property="description">{description}</p>
+</div>
+'''.format(**properties))
+         html.write('</p>\n')
+         if 'author' in properties:
+            authors = properties.get('author',[])
+            for index,author in enumerate(authors if type(authors)==list else [authors]):
+               html.write('<p property="author" typeof="Person"><span property="name">{name}</span></p>\n'.format(name=author))
+         if 'publisher' in properties:
+            publisher = properties['publisher']
+            for name in publisher.keys():
+               value = publisher[name]
+               html.write('<p property="publisher" typeof="Organization"><span property="name">{name}</span></p>\n'.format(name=value))
+         html.write('</section>\n')
+
 
       if 'content' in properties:
          format = properties.get('format',Article.TEXT_MARKDOWN)

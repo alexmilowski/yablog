@@ -108,7 +108,7 @@ def main():
                if updateNeeded(sourceFile,htmlFile,force=args.force):
                   print(file + " → " + htmlFile)
                   with open(htmlFile,'w') as output:
-                     generate(article,'text/html',output,generateTitle=True,resource=resource)
+                     generate(article,'text/html',output,generate_title=True,generate_info=True,resource=resource)
             if args.turtle:
                turtleFile = targetDir + '/' + base + ".ttl"
                if updateNeeded(sourceFile,turtleFile,force=args.force):

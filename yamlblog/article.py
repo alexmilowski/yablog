@@ -34,7 +34,7 @@ class Article:
       if 'title' not in self.metadata:
          self.metadata['title'] = title
 
-      self.hasTitle = title is not None
+      self.has_title = title is not None
 
       if 'description' not in self.metadata:
          self.metadata['description'] = summary
